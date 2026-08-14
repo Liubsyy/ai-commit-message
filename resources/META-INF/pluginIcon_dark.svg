@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient id="git" x1="7" y1="33" x2="25" y2="8" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8A3D"/>
+      <stop offset="1" stop-color="#FF4F57"/>
+    </linearGradient>
+    <linearGradient id="ai" x1="21" y1="20" x2="37" y2="7" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C5CFF"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+  </defs>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.5 13.8V26.2" stroke="#273449" stroke-width="5.6"/>
+    <path d="M13.4 30.1C18.4 29.4 18.1 18.7 24.2 15.5" stroke="#273449" stroke-width="5.6"/>
+    <path d="M9.5 13.8V26.2" stroke="url(#git)" stroke-width="3.7"/>
+    <path d="M13.4 30.1C18.4 29.4 18.1 18.7 24.2 15.5" stroke="url(#git)" stroke-width="3.7"/>
+    <circle cx="9.5" cy="9.5" r="4.2" stroke="#273449" stroke-width="5.6"/>
+    <circle cx="9.5" cy="30.5" r="4.2" stroke="#273449" stroke-width="5.6"/>
+    <circle cx="9.5" cy="9.5" r="4.2" stroke="url(#git)" stroke-width="3.7"/>
+    <circle cx="9.5" cy="30.5" r="4.2" stroke="url(#git)" stroke-width="3.7"/>
+    <path d="M29.2 5.2C30 9.5 33.3 12.8 37.6 13.6C33.3 14.4 30 17.7 29.2 22C28.4 17.7 25.1 14.4 20.8 13.6C25.1 12.8 28.4 9.5 29.2 5.2Z" fill="url(#ai)" stroke="#273449" stroke-width="1.5"/>
+    <circle cx="29.2" cy="13.6" r="1.35" fill="#E8FAFF"/>
+    <path d="M23.5 28.8H37" stroke="#273449" stroke-width="4.6"/>
+    <path d="M23.5 34.2H34.2" stroke="#273449" stroke-width="4.6"/>
+    <path d="M23.5 28.8H37" stroke="#7186AA" stroke-width="2.9"/>
+    <path d="M23.5 34.2H34.2" stroke="#7186AA" stroke-width="2.9"/>
+  </g>
+</svg>

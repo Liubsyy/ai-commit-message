@@ -1,0 +1,49 @@
+<idea-plugin>
+    <id>com.liubsyy.ai-commit-message</id>
+    <name>AI Commit Message</name>
+    <version>1.0.0</version>
+    <vendor>liubsyy</vendor>
+
+    <description><![CDATA[
+        Generate commit messages with AI, right from the commit message toolbar.
+        <ul>
+            <li>Click <b>AI Generate</b> to turn the diff of your selected changes into a commit message.</li>
+            <li>Use the dropdown to switch provider profiles and models.</li>
+            <li>Includes publisher-hosted free models with no API key setup.</li>
+            <li>Works with any OpenAI-compatible API, and can fetch the model list from the provider.</li>
+            <li>Customizable prompt template and output language.</li>
+        </ul>
+        <br/>
+        在提交信息工具栏上用 AI 生成提交文案。
+        <ul>
+            <li>点击 <b>AI Generate</b>，把勾选变更的 diff 转成提交信息。</li>
+            <li>通过下拉菜单切换模型配置和具体模型。</li>
+            <li>内置由发布者托管的免费模型，无需配置 API Key。</li>
+            <li>兼容任意 OpenAI 接口，并支持从上游拉取模型列表。</li>
+            <li>可自定义 Prompt 模板与输出语言。</li>
+        </ul>
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <b>1.0.0</b> — Initial release. 首个版本。
+    ]]></change-notes>
+
+    <idea-version since-build="203"/>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.liubs.aicommit.settings.AiCommitSettings"/>
+    </extensions>
+
+    <actions>
+        <action id="AiCommit.SplitButton"
+                class="com.liubs.aicommit.action.AiCommitSplitButtonAction"
+                text="AI Generate Commit Message"
+                description="Generate a commit message from the diff of selected changes; use the arrow to switch model">
+            <add-to-group group-id="Vcs.MessageActionGroup"
+                          anchor="after" relative-to-action="Vcs.ShowMessageHistory"/>
+        </action>
+    </actions>
+</idea-plugin>
