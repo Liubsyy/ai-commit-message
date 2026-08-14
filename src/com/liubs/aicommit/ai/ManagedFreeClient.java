@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -102,8 +103,9 @@ public final class ManagedFreeClient implements AiClient {
         if (indicator == null) {
             return performExchange(method, url, body, includeInstallationId, connectionRef);
         }
-        Future<String> request = ApplicationManager.getApplication().executeOnPooledThread(
+        FutureTask<String> request = new FutureTask<>(
                 () -> performExchange(method, url, body, includeInstallationId, connectionRef));
+        ApplicationManager.getApplication().executeOnPooledThread(request);
         try {
             while (true) {
                 try {
