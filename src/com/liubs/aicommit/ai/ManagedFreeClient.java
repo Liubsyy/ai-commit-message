@@ -167,6 +167,11 @@ public final class ManagedFreeClient implements AiClient {
             InputStream stream = code >= 200 && code < 300
                     ? connection.getInputStream() : connection.getErrorStream();
             String text = readAll(stream);
+            String gatewayError = extractGatewayError(text);
+            if (gatewayError != null) {
+                throw new IOException("Free model service: " + abbreviate(gatewayError)
+                        + " (HTTP " + code + ")");
+            }
             if (code < 200 || code >= 300) {
                 throw new IOException(errorMessage(code, text));
             }
@@ -187,16 +192,31 @@ public final class ManagedFreeClient implements AiClient {
     }
 
     private static String errorMessage(int code, String response) {
+        String detail = unexpectedResponseDetail(response);
+        return detail.isEmpty()
+                ? "The free model service request failed (HTTP " + code + "). Please try again later."
+                : "The free model service request failed (HTTP " + code + "). " + detail;
+    }
+
+    @Nullable
+    private static String extractGatewayError(String response) {
         try {
             JsonObject root = new JsonParser().parse(response).getAsJsonObject();
-            JsonObject error = root.getAsJsonObject("error");
-            JsonElement message = error == null ? null : error.get("message");
+            JsonElement error = root.get("error");
+            if (error == null || error.isJsonNull()) {
+                return null;
+            }
+            if (error.isJsonPrimitive()) {
+                return error.getAsString();
+            }
+            JsonElement message = error.isJsonObject()
+                    ? error.getAsJsonObject().get("message") : null;
             if (message != null && !message.isJsonNull()) {
-                return "HTTP " + code + ": " + abbreviate(message.getAsString());
+                return message.getAsString();
             }
         } catch (RuntimeException ignored) {
         }
-        return "HTTP " + code + ": " + abbreviate(response);
+        return null;
     }
 
     private static String readAll(@Nullable InputStream stream) throws IOException {
@@ -218,8 +238,25 @@ public final class ManagedFreeClient implements AiClient {
         try {
             return new JsonParser().parse(response).getAsJsonObject();
         } catch (RuntimeException e) {
-            throw new IOException("Free gateway returned invalid JSON");
+            String detail = unexpectedResponseDetail(response);
+            String message = detail.isEmpty()
+                    ? "The free model service returned an empty response. Please try again later."
+                    : "The free model service returned an unexpected response. " + detail;
+            throw new IOException(message, e);
         }
+    }
+
+    private static String unexpectedResponseDetail(@Nullable String response) {
+        String value = response == null ? "" : response.trim();
+        if (value.isEmpty()) {
+            return "";
+        }
+        String lower = value.toLowerCase(java.util.Locale.ROOT);
+        if (lower.startsWith("<!doctype html") || lower.startsWith("<html")) {
+            return "The gateway returned a web page instead of API data. Please try again later.";
+        }
+        return "Please try again later. Response: "
+                + abbreviate(value.replaceAll("\\s+", " "));
     }
 
     private static String joinUrl(String baseUrl, String path) {

@@ -170,9 +170,16 @@ public final class OpenAiCompatibleClient implements AiClient {
             InputStream stream = code >= 200 && code < 300
                     ? connection.getInputStream() : connection.getErrorStream();
             String text = readAll(stream);
+            String providerError = extractProviderError(text);
+            if (providerError != null) {
+                throw new IOException("AI provider: " + abbreviate(providerError)
+                        + " (HTTP " + code + ")");
+            }
             if (code < 200 || code >= 300) {
-                throw new IOException("HTTP " + code + ": "
-                        + (text.isEmpty() ? "(empty response body)" : abbreviate(text)));
+                String detail = unexpectedResponseDetail(text);
+                throw new IOException(detail.isEmpty()
+                        ? "The AI provider request failed (HTTP " + code + ") with an empty response."
+                        : "The AI provider request failed (HTTP " + code + "). " + detail);
             }
             return text;
         } finally {
@@ -195,12 +202,76 @@ public final class OpenAiCompatibleClient implements AiClient {
         }
     }
 
+    @Nullable
+    private static String extractProviderError(String response) {
+        try {
+            JsonObject root = new JsonParser().parse(response).getAsJsonObject();
+            JsonElement error = root.get("error");
+            String message = errorText(error);
+            if (message != null) {
+                return message;
+            }
+            if (root.has("choices") || root.has("data")) {
+                return null;
+            }
+            message = firstText(root, "message", "msg", "detail", "error_description");
+            return message == null || message.trim().isEmpty() ? null : message;
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private static String errorText(@Nullable JsonElement error) {
+        if (error == null || error.isJsonNull()) {
+            return null;
+        }
+        if (error.isJsonPrimitive()) {
+            return error.getAsString();
+        }
+        if (error.isJsonObject()) {
+            return firstText(error.getAsJsonObject(),
+                    "message", "msg", "detail", "error_description");
+        }
+        if (error.isJsonArray() && error.getAsJsonArray().size() > 0) {
+            return errorText(error.getAsJsonArray().get(0));
+        }
+        return null;
+    }
+
+    @Nullable
+    private static String firstText(JsonObject object, String... names) {
+        for (String name : names) {
+            JsonElement value = object.get(name);
+            if (value != null && !value.isJsonNull() && value.isJsonPrimitive()) {
+                return value.getAsString();
+            }
+        }
+        return null;
+    }
+
     private static JsonObject parseObject(String response) throws IOException {
         try {
             return new JsonParser().parse(response).getAsJsonObject();
         } catch (RuntimeException e) {
-            throw new IOException("Response is not valid JSON: " + abbreviate(response));
+            String detail = unexpectedResponseDetail(response);
+            String message = detail.isEmpty()
+                    ? "The AI provider returned an empty response."
+                    : "The AI provider returned an unexpected response. " + detail;
+            throw new IOException(message, e);
         }
+    }
+
+    private static String unexpectedResponseDetail(@Nullable String response) {
+        String value = response == null ? "" : response.trim();
+        if (value.isEmpty()) {
+            return "";
+        }
+        String lower = value.toLowerCase(java.util.Locale.ROOT);
+        if (lower.startsWith("<!doctype html") || lower.startsWith("<html")) {
+            return "The server returned a web page instead of API data.";
+        }
+        return "Response: " + abbreviate(value.replaceAll("\\s+", " "));
     }
 
     private static String joinUrl(String baseUrl, String path) {
