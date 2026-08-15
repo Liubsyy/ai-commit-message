@@ -1,3 +1,8 @@
+
+<div align="center">
+  <img align="center" src="./img/logo.png" width="100" height="100" />
+</div>
+
 # AI Commit Message
 
 在 JetBrains IDE 的提交窗口中，使用 AI 根据已选择变更的 diff 生成清晰、简洁的 Conventional Commit 信息。
