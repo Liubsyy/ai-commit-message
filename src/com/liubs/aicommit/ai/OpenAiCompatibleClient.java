@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -149,7 +149,7 @@ public final class OpenAiCompatibleClient implements AiClient {
                                    @Nullable String body,
                                    @Nullable ProgressIndicator indicator) throws IOException {
         checkCanceled(indicator);
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        HttpURLConnection connection = openConnection(url);
         try {
             connection.setRequestMethod(method);
             connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -187,6 +187,14 @@ public final class OpenAiCompatibleClient implements AiClient {
         }
     }
 
+    private static HttpURLConnection openConnection(String url) throws IOException {
+        try {
+            return (HttpURLConnection) URI.create(url).toURL().openConnection();
+        } catch (RuntimeException e) {
+            throw new IOException("Invalid provider URL: " + url, e);
+        }
+    }
+
     private static String readAll(@Nullable InputStream stream) throws IOException {
         if (stream == null) {
             return "";
@@ -205,7 +213,7 @@ public final class OpenAiCompatibleClient implements AiClient {
     @Nullable
     private static String extractProviderError(String response) {
         try {
-            JsonObject root = new JsonParser().parse(response).getAsJsonObject();
+            JsonObject root = JsonParser.parseString(response).getAsJsonObject();
             JsonElement error = root.get("error");
             String message = errorText(error);
             if (message != null) {
@@ -252,7 +260,7 @@ public final class OpenAiCompatibleClient implements AiClient {
 
     private static JsonObject parseObject(String response) throws IOException {
         try {
-            return new JsonParser().parse(response).getAsJsonObject();
+            return JsonParser.parseString(response).getAsJsonObject();
         } catch (RuntimeException e) {
             String detail = unexpectedResponseDetail(response);
             String message = detail.isEmpty()

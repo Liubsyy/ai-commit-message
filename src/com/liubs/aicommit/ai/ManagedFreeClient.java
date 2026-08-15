@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -143,7 +143,7 @@ public final class ManagedFreeClient implements AiClient {
                                           boolean includeInstallationId,
                                           AtomicReference<HttpURLConnection> connectionRef)
             throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        HttpURLConnection connection = openConnection(url);
         connectionRef.set(connection);
         try {
             if (Thread.currentThread().isInterrupted()) {
@@ -184,6 +184,14 @@ public final class ManagedFreeClient implements AiClient {
         }
     }
 
+    private static HttpURLConnection openConnection(String url) throws IOException {
+        try {
+            return (HttpURLConnection) URI.create(url).toURL().openConnection();
+        } catch (RuntimeException e) {
+            throw new IOException("Invalid free gateway URL: " + url, e);
+        }
+    }
+
     private static void cancelRequest(Future<String> request,
                                       AtomicReference<HttpURLConnection> connectionRef) {
         request.cancel(true);
@@ -203,7 +211,7 @@ public final class ManagedFreeClient implements AiClient {
     @Nullable
     private static String extractGatewayError(String response) {
         try {
-            JsonObject root = new JsonParser().parse(response).getAsJsonObject();
+            JsonObject root = JsonParser.parseString(response).getAsJsonObject();
             JsonElement error = root.get("error");
             if (error == null || error.isJsonNull()) {
                 return null;
@@ -238,7 +246,7 @@ public final class ManagedFreeClient implements AiClient {
 
     private static JsonObject parseObject(String response) throws IOException {
         try {
-            return new JsonParser().parse(response).getAsJsonObject();
+            return JsonParser.parseString(response).getAsJsonObject();
         } catch (RuntimeException e) {
             String detail = unexpectedResponseDetail(response);
             String message = detail.isEmpty()

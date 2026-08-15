@@ -1,10 +1,11 @@
 package com.liubs.aicommit.diff;
 
-import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diff.impl.patch.FilePatch;
 import com.intellij.openapi.diff.impl.patch.IdeaTextPatchBuilder;
 import com.intellij.openapi.diff.impl.patch.UnifiedDiffWriter;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vcs.changes.Change;
 import com.intellij.openapi.vcs.changes.ChangesUtil;
 
@@ -22,8 +23,9 @@ public final class ChangesDiffBuilder {
         String diff;
         try {
             String basePath = project.getBasePath() == null ? "" : project.getBasePath();
-            List<FilePatch> patches = ReadAction.compute(() ->
-                    IdeaTextPatchBuilder.buildPatch(project, changes, basePath, false));
+            List<FilePatch> patches = ApplicationManager.getApplication().runReadAction(
+                    (ThrowableComputable<List<FilePatch>, Exception>) () ->
+                            IdeaTextPatchBuilder.buildPatch(project, changes, basePath, false));
             StringWriter writer = new StringWriter();
             UnifiedDiffWriter.write(project, patches, writer, "\n", null);
             diff = writer.toString();

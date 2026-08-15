@@ -1,6 +1,8 @@
 package com.liubs.aicommit.action;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -41,15 +43,15 @@ public class GenerateCommitMessageAction extends DumbAwareAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        perform(e, null);
+        perform(e.getDataContext(), null);
     }
 
     /** completion 在整个流程结束时(含提前返回与后台任务完成)于 EDT 调用一次 */
-    public void perform(@NotNull AnActionEvent e, @Nullable Runnable completion) {
-        Project project = e.getProject();
-        CommitMessageI commitUi = e.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL);
+    public void perform(@NotNull DataContext dataContext, @Nullable Runnable completion) {
+        Project project = CommonDataKeys.PROJECT.getData(dataContext);
+        CommitMessageI commitUi = VcsDataKeys.COMMIT_MESSAGE_CONTROL.getData(dataContext);
         if (commitUi == null) {
-            Refreshable panel = Refreshable.PANEL_KEY.getData(e.getDataContext());
+            Refreshable panel = Refreshable.PANEL_KEY.getData(dataContext);
             if (panel instanceof CommitMessageI) {
                 commitUi = (CommitMessageI) panel;
             }
@@ -74,7 +76,7 @@ public class GenerateCommitMessageAction extends DumbAwareAction {
             }
         }
 
-        List<Change> changes = resolveChanges(e);
+        List<Change> changes = resolveChanges(dataContext);
         if (changes.isEmpty()) {
             Messages.showWarningDialog(project,
                     "No changes selected. Check the files to commit first.", "AI Commit Message");
@@ -128,13 +130,13 @@ public class GenerateCommitMessageAction extends DumbAwareAction {
      * 只取用户勾选的变更:非模态 Commit 工具窗口走 workflow handler 的 includedChanges,
      * 旧版对话框走 CheckinProjectPanel 的 selectedChanges;都拿不到就返回空,由调用方提示。
      */
-    private static List<Change> resolveChanges(AnActionEvent e) {
-        CommitWorkflowHandler handler = e.getData(VcsDataKeys.COMMIT_WORKFLOW_HANDLER);
+    private static List<Change> resolveChanges(DataContext dataContext) {
+        CommitWorkflowHandler handler = VcsDataKeys.COMMIT_WORKFLOW_HANDLER.getData(dataContext);
         if (handler instanceof AbstractCommitWorkflowHandler) {
             return new ArrayList<>(((AbstractCommitWorkflowHandler<?, ?>) handler)
                     .getUi().getIncludedChanges());
         }
-        Refreshable panel = Refreshable.PANEL_KEY.getData(e.getDataContext());
+        Refreshable panel = Refreshable.PANEL_KEY.getData(dataContext);
         if (panel instanceof CheckinProjectPanel) {
             return new ArrayList<>(((CheckinProjectPanel) panel).getSelectedChanges());
         }

@@ -1,7 +1,6 @@
 package com.liubs.aicommit.settings.ui;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -147,14 +146,14 @@ public class SettingsDialog extends DialogWrapper {
         JPanel listPanel = ToolbarDecorator.createDecorator(profileList)
                 .setAddAction(button -> addProfile())
                 .setRemoveAction(button -> removeProfile())
-                .addExtraAction(new AnActionButton("Duplicate Profile", AllIcons.Actions.Copy) {
-                    @Override
-                    public void actionPerformed(@NotNull AnActionEvent e) {
-                        duplicateProfile();
-                    }
-                })
+                .setEditAction(button -> duplicateProfile())
+                .setEditActionName("Duplicate Profile")
                 .disableUpDownActions()
                 .createPanel();
+        AnActionButton duplicateButton = ToolbarDecorator.findEditButton(listPanel);
+        if (duplicateButton != null) {
+            duplicateButton.getTemplatePresentation().setIcon(AllIcons.Actions.Copy);
+        }
         JPanel left = new JPanel(new BorderLayout());
         left.add(listPanel, BorderLayout.CENTER);
 

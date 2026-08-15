@@ -1,15 +1,16 @@
 package com.liubs.aicommit.action;
 
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +44,7 @@ public class AiCommitSplitButtonAction extends DumbAwareAction implements Custom
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        new GenerateCommitMessageAction().actionPerformed(e);
+        new GenerateCommitMessageAction().perform(e.getDataContext(), null);
     }
 
     @NotNull
@@ -113,10 +114,9 @@ public class AiCommitSplitButtonAction extends DumbAwareAction implements Custom
             if (busy) {
                 return;
             }
-            AnActionEvent event = AnActionEvent.createFromDataContext(
-                    "AiCommitSplitButton", null, dataContext());
+            DataContext context = dataContext();
             setBusy(true);
-            new GenerateCommitMessageAction().perform(event, () -> setBusy(false));
+            new GenerateCommitMessageAction().perform(context, () -> setBusy(false));
         }
 
         private void setBusy(boolean value) {
@@ -145,7 +145,7 @@ public class AiCommitSplitButtonAction extends DumbAwareAction implements Custom
          * 直接按组件层级取可能拿不到这些 key。
          */
         private DataContext dataContext() {
-            ActionToolbarImpl toolbar = UIUtil.getParentOfType(ActionToolbarImpl.class, this);
+            ActionToolbar toolbar = UIUtil.getParentOfType(ActionToolbar.class, this);
             if (toolbar != null) {
                 return toolbar.getToolbarDataContext();
             }
@@ -244,7 +244,7 @@ public class AiCommitSplitButtonAction extends DumbAwareAction implements Custom
 
         private static void paintSparkles(Graphics2D g2, int cx, int cy) {
             g2.fill(star(cx - JBUI.scale(1), cy + JBUI.scale(1), JBUI.scale(6), JBUI.scale(6) * 0.36));
-            g2.fill(star(cx + JBUI.scale(5), cy - JBUI.scale(4), JBUI.scale(2.6f), JBUI.scale(2.6f) * 0.4));
+            g2.fill(star(cx + JBUI.scale(5), cy - JBUI.scale(4), JBUIScale.scale(2.6f), JBUIScale.scale(2.6f) * 0.4));
         }
 
         /** 四角星:8 个顶点交替使用外径/内径 */
@@ -268,10 +268,10 @@ public class AiCommitSplitButtonAction extends DumbAwareAction implements Custom
         private static void paintChevron(Graphics2D g2, int cx, int cy) {
             g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             Path2D chevron = new Path2D.Float();
-            float half = JBUI.scale(3.4f);
-            chevron.moveTo(cx - half, cy - JBUI.scale(1.6f));
-            chevron.lineTo(cx, cy + JBUI.scale(1.9f));
-            chevron.lineTo(cx + half, cy - JBUI.scale(1.6f));
+            float half = JBUIScale.scale(3.4f);
+            chevron.moveTo(cx - half, cy - JBUIScale.scale(1.6f));
+            chevron.lineTo(cx, cy + JBUIScale.scale(1.9f));
+            chevron.lineTo(cx + half, cy - JBUIScale.scale(1.6f));
             g2.draw(chevron);
         }
     }
