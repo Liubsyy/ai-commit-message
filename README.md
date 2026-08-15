@@ -1,6 +1,6 @@
 
 <div align="center">
-  <img align="center" src="./img/logo.png" width="100" height="100" />
+  <img align="center" src="./assets/logo.png" width="100" height="100" />
 </div>
 
 # AI Commit Message
