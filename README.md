@@ -30,7 +30,8 @@ Generate clear and concise Conventional Commit messages from selected changes di
 - 默认按照 Conventional Commits 格式生成提交信息。
   
 ### 安装
-在 JetBrains IDE 中打开 `Settings | Plugins`，点击齿轮按钮并选择 `Install Plugin from Disk...`，然后选择项目中的 `ai-commit-message.jar`。
+
+在 JetBrains IDE 中打开 `Settings | Plugins | Marketplace`，搜索 `ai-commit-message`，然后点击 `Install`。
 
 插件要求 JetBrains Platform 2020.3 或更高版本。
 
@@ -45,6 +46,6 @@ Generate clear and concise Conventional Commit messages from selected changes di
 
 ### Installation
 
-Open `Settings | Plugins` in your JetBrains IDE, click the gear icon, choose `Install Plugin from Disk...`, and select `ai-commit-message.jar` from this project.
+Open `Settings | Plugins | Marketplace` in your JetBrains IDE, search for `ai-commit-message`, and click `Install`.
 
 The plugin requires JetBrains Platform 2020.3 or later.
