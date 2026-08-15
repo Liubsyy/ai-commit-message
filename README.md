@@ -16,9 +16,20 @@
 
 Generate clear and concise Conventional Commit messages from selected changes directly in the JetBrains IDE commit window.
 
-<p align="center">
-  <img src="./img/pic1.png" alt="AI Commit Message in the JetBrains commit window" width="680">
-</p>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="./img/pic1.png" alt="Generate an AI commit message in the JetBrains commit window">
+      <br>
+      <sub>生成提交信息 · Generate a commit message</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="./img/ai-model-setting.png" alt="Configure the AI provider and model">
+      <br>
+      <sub>配置 AI 模型 · Configure the AI model</sub>
+    </td>
+  </tr>
+</table>
 
 
 ### 功能
