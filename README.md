@@ -3,6 +3,13 @@
   <img align="center" src="./assets/logo.png" width="100" height="100" />
 </div>
 
+
+[![License](https://img.shields.io/github/license/Liubsyy/ai-commit-message?color=blue)](./LICENSE)
+[![release](https://img.shields.io/jetbrains/plugin/v/33564?label=version)](https://plugins.jetbrains.com/plugin/33564-ai-commit-message)
+![sdk](https://img.shields.io/badge/plugin%20sdk-IDEA%202020.3-red.svg)
+
+
+
 # AI Commit Message
 
 在 JetBrains IDE 的提交窗口中，使用 AI 根据已选择变更的 diff 生成清晰、简洁的 Conventional Commit 信息。

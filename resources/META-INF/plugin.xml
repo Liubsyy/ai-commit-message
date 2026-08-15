@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>com.liubsyy.ai-commit-message</id>
-    <name>AI Commit Message</name>
+    <name>ai-commit-message</name>
     <version>1.0.0</version>
     <vendor>liubsyy</vendor>
 
