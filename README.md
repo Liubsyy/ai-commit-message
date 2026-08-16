@@ -19,12 +19,12 @@ Generate clear and concise Conventional Commit messages from selected changes di
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="./img/pic1.png" alt="Generate an AI commit message in the JetBrains commit window">
+      <img src="./assets/pic1.png" alt="Generate an AI commit message in the JetBrains commit window">
       <br>
       <sub>生成提交信息 · Generate a commit message</sub>
     </td>
     <td width="50%" align="center">
-      <img src="./img/ai-model-setting.png" alt="Configure the AI provider and model">
+      <img src="./assets/ai-model-setting.png" alt="Configure the AI provider and model">
       <br>
       <sub>配置 AI 模型 · Configure the AI model</sub>
     </td>
@@ -40,8 +40,7 @@ Generate clear and concise Conventional Commit messages from selected changes di
 │   ├── src/            # Java 源码
 │   ├── resources/      # plugin.xml、图标、Prompt 模板等资源
 │   └── ai-commit-message.iml
-├── assets/             # Logo
-└── img/                # 截图
+└── assets/             # Logo 与截图
 ```
 
 后续其他 IDE / 编辑器的插件将以同级目录的形式加入。
@@ -69,8 +68,7 @@ Generate clear and concise Conventional Commit messages from selected changes di
 │   ├── src/            # Java sources
 │   ├── resources/      # plugin.xml, icons, prompt templates
 │   └── ai-commit-message.iml
-├── assets/             # Logo
-└── img/                # Screenshots
+└── assets/             # Logo and screenshots
 ```
 
 Plugins for other IDEs and editors will be added as sibling directories.
