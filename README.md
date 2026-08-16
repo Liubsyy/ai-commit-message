@@ -9,8 +9,9 @@
 Generate clear and concise Conventional Commit messages from your diff with AI, available as JetBrains and VS Code plugins.
 
 [![License](https://img.shields.io/github/license/Liubsyy/ai-commit-message?color=blue)](./LICENSE)
-[![release](https://img.shields.io/jetbrains/plugin/v/33564?label=version)](https://plugins.jetbrains.com/plugin/33564-ai-commit-message)
-![sdk](https://img.shields.io/badge/plugin%20sdk-IDEA%202020.3-red.svg)
+![version](https://img.shields.io/badge/version-1.0.0-blue)
+[![JetBrains](https://img.shields.io/jetbrains/plugin/d/33564?label=JetBrains)](https://plugins.jetbrains.com/plugin/33564-ai-commit-message)
+[![VS Code](https://vsmarketplacebadges.dev/installs/liubsyy.ai-commit-message-liubsyy.svg?label=VS%20Code&color=007ACC&style=flat)](https://marketplace.visualstudio.com/items?itemName=liubsyy.ai-commit-message-liubsyy)
 
 </div>
 
