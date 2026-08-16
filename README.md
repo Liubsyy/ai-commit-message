@@ -57,6 +57,10 @@ Open `Settings | Plugins | Marketplace` in your JetBrains IDE, search for `ai-co
 │   ├── src/                   # Java 源码 · Java sources
 │   ├── resources/             
 │   └── ai-commit-message.iml
+├── vscode-plugin/             # VS Code 扩展（TypeScript）· VS Code extension (TypeScript)
+│   ├── src/                   # TypeScript 源码 · TypeScript sources
+│   ├── resources/             
+│   └── package.json
 └── assets/                    
 ```
 
