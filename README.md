@@ -32,6 +32,20 @@ Generate clear and concise Conventional Commit messages from selected changes di
 </table>
 
 
+### 目录结构
+
+```
+.
+├── jetbrains-plugin/   # JetBrains IDE 插件（DevKit 模块）
+│   ├── src/            # Java 源码
+│   ├── resources/      # plugin.xml、图标、Prompt 模板等资源
+│   └── ai-commit-message.iml
+├── assets/             # Logo
+└── img/                # 截图
+```
+
+后续其他 IDE / 编辑器的插件将以同级目录的形式加入。
+
 ### 功能
 
 - 在提交信息工具栏中一键生成 commit message。
@@ -46,6 +60,20 @@ Generate clear and concise Conventional Commit messages from selected changes di
 
 插件要求 JetBrains Platform 2020.3 或更高版本。
 
+
+### Repository layout
+
+```
+.
+├── jetbrains-plugin/   # JetBrains IDE plugin (DevKit module)
+│   ├── src/            # Java sources
+│   ├── resources/      # plugin.xml, icons, prompt templates
+│   └── ai-commit-message.iml
+├── assets/             # Logo
+└── img/                # Screenshots
+```
+
+Plugins for other IDEs and editors will be added as sibling directories.
 
 ### Features
 - Generate a commit message from the commit toolbar with one click.
