@@ -4,9 +4,9 @@
 
 # AI Commit Message
 
-在 JetBrains IDE 与 VS Code 的提交窗口中，使用 AI 根据变更 diff 生成清晰、简洁的 Conventional Commit 信息。
+使用 AI 根据变更 diff 生成清晰、简洁的 Conventional Commit 信息，支持 JetBrains 插件和 VS Code 插件。
 
-Generate clear and concise Conventional Commit messages from your changes directly in the JetBrains IDE and VS Code commit window.
+Generate clear and concise Conventional Commit messages from your diff with AI, available as JetBrains and VS Code plugins.
 
 [![License](https://img.shields.io/github/license/Liubsyy/ai-commit-message?color=blue)](./LICENSE)
 [![release](https://img.shields.io/jetbrains/plugin/v/33564?label=version)](https://plugins.jetbrains.com/plugin/33564-ai-commit-message)
@@ -19,12 +19,24 @@ Generate clear and concise Conventional Commit messages from your changes direct
     <td width="50%" align="center">
       <img src="./assets/pic1.png" alt="Generate an AI commit message in the JetBrains commit window">
       <br>
-      <sub>生成提交信息 · Generate a commit message</sub>
+      <sub>JetBrains · 生成提交信息 · Generate a commit message</sub>
     </td>
     <td width="50%" align="center">
-      <img src="./assets/ai-model-setting.png" alt="Configure the AI provider and model">
+      <img src="./assets/ai-model-setting.png" alt="Configure the AI provider and model in JetBrains">
       <br>
-      <sub>配置 AI 模型 · Configure the AI model</sub>
+      <sub>JetBrains · 配置 AI 模型 · Configure the AI model</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="./assets/pic-vscode.png" alt="Generate an AI commit message in the VS Code Source Control view">
+      <br>
+      <sub>VS Code · 生成提交信息 · Generate a commit message</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="./assets/ai-model-setting-vscode.png" alt="Configure the AI provider and model in VS Code">
+      <br>
+      <sub>VS Code · 配置 AI 模型 · Configure the AI model</sub>
     </td>
   </tr>
 </table>
