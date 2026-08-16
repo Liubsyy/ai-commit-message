@@ -65,9 +65,9 @@ Open `Settings | Plugins | Marketplace` in your JetBrains IDE, search for `ai-co
 
 ### VS Code
 
-在扩展面板搜索 `AI Commit Message` 安装，或使用 `code --install-extension ai-commit-message-<version>.vsix` 安装本地包。
+在扩展面板搜索 `ai-commit-message-liubsyy` 安装，或使用 `code --install-extension ai-commit-message-liubsyy-<version>.vsix` 安装本地包。
 
-Search for `AI Commit Message` in the Extensions view, or install a local package with `code --install-extension ai-commit-message-<version>.vsix`.
+Search for `ai-commit-message-liubsyy` in the Extensions view, or install a local package with `code --install-extension ai-commit-message-liubsyy-<version>.vsix`.
 
 > 要求 VS Code 1.82 或更高版本。
 >
