@@ -10,7 +10,7 @@ Generate clear and concise Conventional Commit messages from your diff with AI, 
 
 [![License](https://img.shields.io/github/license/Liubsyy/ai-commit-message?color=blue)](./LICENSE)
 ![version](https://img.shields.io/badge/version-1.0.0-blue)
-[![JetBrains](https://img.shields.io/badge/JetBrains-supported-000000?logo=jetbrains&logoColor=white)](https://plugins.jetbrains.com/plugin/33564-ai-commit-message)
+[![JetBrains](https://img.shields.io/badge/JetBrains-supported-FE315D?logo=intellijidea&logoColor=white)](https://plugins.jetbrains.com/plugin/33564-ai-commit-message)
 [![VS Code](https://img.shields.io/badge/VS%20Code-supported-007ACC?logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0yMy4xNSAyLjU4N0wxOC4yMS4yMWExLjQ5NCAxLjQ5NCAwIDAgMC0xLjcwNS4yOWwtOS40NiA4LjYzLTQuMTItMy4xMjhhLjk5OS45OTkgMCAwIDAtMS4yNzYuMDU3TC4zMjcgNy4yNjFBMSAxIDAgMCAwIC4zMjYgOC43NEwzLjg5OSAxMiAuMzI2IDE1LjI2YTEgMSAwIDAgMCAuMDAxIDEuNDc5TDEuNjUgMTcuOTRhLjk5OS45OTkgMCAwIDAgMS4yNzYuMDU3bDQuMTItMy4xMjggOS40NiA4LjYzYTEuNDkyIDEuNDkyIDAgMCAwIDEuNzA0LjI5bDQuOTQyLTIuMzc3QTEuNSAxLjUgMCAwIDAgMjQgMjAuMDZWMy45MzlhMS41IDEuNSAwIDAgMC0uODUtMS4zNTJ6bS01LjE0NiAxNC44NjFMMTAuODI2IDEybDcuMTc4LTUuNDQ4djEwLjg5NnoiLz48L3N2Zz4%3D)](https://marketplace.visualstudio.com/items?itemName=liubsyy.ai-commit-message-liubsyy)
 
 </div>
