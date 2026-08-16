@@ -53,6 +53,7 @@ export class SettingsStore {
   async save(): Promise<void> {
     this.ensureManagedFreeProfile();
     await this.memento.update(STATE_KEY, this.state);
+    changeEmitter.fire();
   }
 
   getDiffCharLimit(): number {
@@ -118,6 +119,10 @@ function createDefaultState(): SettingsState {
     managedFreeModelConfigVersion: 1,
   };
 }
+
+const changeEmitter = new vscode.EventEmitter<void>();
+/** 设置保存后触发,供界面(如生成按钮下的模型标签)刷新 */
+export const onSettingsChanged = changeEmitter.event;
 
 let instance: SettingsStore | undefined;
 

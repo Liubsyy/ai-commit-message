@@ -4,9 +4,9 @@
 
 # AI Commit Message
 
-在 JetBrains IDE 的提交窗口中，使用 AI 根据已选择变更的 diff 生成清晰、简洁的 Conventional Commit 信息。
+在 JetBrains IDE 与 VS Code 的提交窗口中，使用 AI 根据变更 diff 生成清晰、简洁的 Conventional Commit 信息。
 
-Generate clear and concise Conventional Commit messages from selected changes directly in the JetBrains IDE commit window.
+Generate clear and concise Conventional Commit messages from your changes directly in the JetBrains IDE and VS Code commit window.
 
 [![License](https://img.shields.io/github/license/Liubsyy/ai-commit-message?color=blue)](./LICENSE)
 [![release](https://img.shields.io/jetbrains/plugin/v/33564?label=version)](https://plugins.jetbrains.com/plugin/33564-ai-commit-message)
@@ -41,6 +41,8 @@ Generate clear and concise Conventional Commit messages from selected changes di
 
 ## 安装 · Installation
 
+### JetBrains IDE
+
 在 JetBrains IDE 中打开 `Settings | Plugins | Marketplace`，搜索 `ai-commit-message`，然后点击 `Install`。
 
 Open `Settings | Plugins | Marketplace` in your JetBrains IDE, search for `ai-commit-message`, and click `Install`.
@@ -49,24 +51,15 @@ Open `Settings | Plugins | Marketplace` in your JetBrains IDE, search for `ai-co
 >
 > Requires JetBrains Platform 2020.3 or later.
 
-## 目录结构 · Repository Layout
+### VS Code
 
-```
-.
-├── jetbrains-plugin/          # JetBrains IDE 插件（DevKit 模块）· JetBrains IDE plugin (DevKit module)
-│   ├── src/                   # Java 源码 · Java sources
-│   ├── resources/             
-│   └── ai-commit-message.iml
-├── vscode-plugin/             # VS Code 扩展（TypeScript）· VS Code extension (TypeScript)
-│   ├── src/                   # TypeScript 源码 · TypeScript sources
-│   ├── resources/             
-│   └── package.json
-└── assets/                    
-```
+在扩展面板搜索 `AI Commit Message` 安装，或使用 `code --install-extension ai-commit-message-<version>.vsix` 安装本地包。
 
-后续其他 IDE / 编辑器的插件将以同级目录的形式加入。
+Search for `AI Commit Message` in the Extensions view, or install a local package with `code --install-extension ai-commit-message-<version>.vsix`.
 
-Plugins for other IDEs and editors will be added as sibling directories.
+> 要求 VS Code 1.82 或更高版本。
+>
+> Requires VS Code 1.82 or later.
 
 ## 许可证 · License
 

@@ -1,19 +1,20 @@
 # Build output
 /out/
 /build/
+jetbrains-plugin/out/
 /ai-commit-message.jar
 *.zip
 
 # IDE user-specific files
 # .idea/modules.xml, misc.xml, runConfigurations and *.iml define the DevKit
-# module layout and are intentionally tracked.
-.idea/workspace.xml
-.idea/usage.statistics.xml
-.idea/shelf/
-.idea/httpRequests/
-.idea/dictionaries/
-.idea/tasks.xml
-.idea/sonarlint/
+# module layout and are intentionally tracked (under jetbrains-plugin/.idea).
+**/.idea/workspace.xml
+**/.idea/usage.statistics.xml
+**/.idea/shelf/
+**/.idea/httpRequests/
+**/.idea/dictionaries/
+**/.idea/tasks.xml
+**/.idea/sonarlint/
 
 # OS files
 .DS_Store

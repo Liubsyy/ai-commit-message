@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/jetbrains-plugin/ai-commit-message.iml" filepath="$PROJECT_DIR$/jetbrains-plugin/ai-commit-message.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ai-commit-message.iml" filepath="$PROJECT_DIR$/ai-commit-message.iml" />
     </modules>
   </component>
 </project>
