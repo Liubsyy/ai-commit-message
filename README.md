@@ -55,9 +55,9 @@ Open `Settings | Plugins | Marketplace` in your JetBrains IDE, search for `ai-co
 .
 ├── jetbrains-plugin/          # JetBrains IDE 插件（DevKit 模块）· JetBrains IDE plugin (DevKit module)
 │   ├── src/                   # Java 源码 · Java sources
-│   ├── resources/             # plugin.xml、图标、Prompt 模板 · plugin.xml, icons, prompt templates
+│   ├── resources/             
 │   └── ai-commit-message.iml
-└── assets/                    # Logo 与截图 · Logo and screenshots
+└── assets/                    
 ```
 
 后续其他 IDE / 编辑器的插件将以同级目录的形式加入。
