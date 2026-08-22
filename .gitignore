@@ -2,7 +2,7 @@
 /out/
 /build/
 jetbrains-plugin/out/
-/ai-commit-message.jar
+/jetbrains-plugin/ai-commit-message.jar
 *.zip
 
 # IDE user-specific files

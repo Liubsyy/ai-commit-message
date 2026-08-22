@@ -2,7 +2,7 @@
   "name": "ai-commit-message-liubsyy",
   "displayName": "ai-commit-message-liubsyy",
   "description": "Generate Conventional Commit messages with AI from the Source Control panel. Includes publisher-hosted free models and works with any OpenAI-compatible API. 在源代码管理面板用 AI 生成提交信息，内置免费模型，兼容任意 OpenAI 接口。",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "liubsyy",
   "license": "MIT",
   "icon": "resources/icon.png",
