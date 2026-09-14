@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.liubsyy.ai-commit-message</id>
     <name>ai-commit-message</name>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <vendor>liubsyy</vendor>
 
     <description><![CDATA[
@@ -25,7 +25,16 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>1.0.2</b>
+        <ul>
+            <li>List changed files before diff content while preserving the character limit. 优先发送变更文件清单，再发送 diff 内容，保留字符截断机制。</li>
+            <li>Press Enter to add a model ID and continue entering the next one, with automatic duplicate removal. 输入模型 ID 后按回车即可添加并继续输入下一个，自动去重。</li>
+            <li>Delete individual models using the icon on the right of each dropdown item. Deleting the current model clears the selection. 点击下拉列表每项右侧的图标即可删除模型，删除当前模型时清空选择。</li>
+            <li>Improve model menu API compatibility and task cancellation while retaining JetBrains 2020.3 support. 优化模型菜单 API 兼容性与任务取消处理，继续支持 JetBrains 2020.3。</li>
+        </ul>
+      
         <b>1.0.1</b> — Update free baseUrl
+      
         <b>1.0.0</b> — Initial release. 首个版本。
     ]]></change-notes>
 

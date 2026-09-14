@@ -13,7 +13,7 @@ import java.io.StringWriter;
 import java.util.Collection;
 import java.util.List;
 
-/** 把勾选的 Change 列表转成统一 diff 文本,超长按字符预算截断 */
+/** 先列勾选的变更文件,再附统一 diff 文本,整体超长按字符预算截断 */
 public final class ChangesDiffBuilder {
 
     private ChangesDiffBuilder() {
@@ -30,11 +30,10 @@ public final class ChangesDiffBuilder {
             UnifiedDiffWriter.write(project, patches, writer, "\n", null);
             diff = writer.toString();
         } catch (Exception e) {
-            diff = describeChanges(changes);
+            diff = "";
         }
-        if (diff.trim().isEmpty()) {
-            diff = describeChanges(changes);
-        }
+        diff = describeChanges(changes)
+                + (diff.trim().isEmpty() ? "\n[Note: full diff unavailable]" : "\nDiff:\n" + diff);
         if (charLimit > 0 && diff.length() > charLimit) {
             diff = diff.substring(0, charLimit)
                     + "\n\n[Note: diff truncated to the first " + charLimit + " characters]";
@@ -42,9 +41,9 @@ public final class ChangesDiffBuilder {
         return diff.trim();
     }
 
-    /** patch 生成失败时的兜底:至少给出文件级变更概览 */
+    /** 文件清单放在 diff 之前,优先保留文件级变更概览 */
     private static String describeChanges(Collection<Change> changes) {
-        StringBuilder sb = new StringBuilder("Changed files (full diff unavailable):\n");
+        StringBuilder sb = new StringBuilder("Changed files:\n");
         for (Change change : changes) {
             sb.append("- ").append(change.getType()).append(' ')
                     .append(ChangesUtil.getFilePath(change).getPath()).append('\n');

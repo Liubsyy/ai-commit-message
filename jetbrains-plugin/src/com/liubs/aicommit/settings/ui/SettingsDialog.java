@@ -2,7 +2,6 @@ package com.liubs.aicommit.settings.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -28,11 +27,11 @@ import com.liubs.aicommit.settings.AiCommitSettings;
 import com.liubs.aicommit.settings.ApiKeyStore;
 import com.liubs.aicommit.settings.OutputLanguages;
 import com.liubs.aicommit.settings.ProviderProfile;
+import com.liubs.aicommit.util.ProgressTasks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.Box;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -59,7 +58,7 @@ public class SettingsDialog extends DialogWrapper {
     private final JBTextField nameField = new JBTextField();
     private final JBTextField baseUrlField = new JBTextField();
     private final JBPasswordField apiKeyField = new JBPasswordField();
-    private final ComboBox<String> modelCombo = new ComboBox<>();
+    private final ModelSelector modelSelector = new ModelSelector();
     private final ComboBox<String> languageCombo = new ComboBox<>(OutputLanguages.LABELS);
     private final JButton fetchModelsButton = new JButton("Fetch From Provider");
     private final JButton testButton = new JButton("Test Connection");
@@ -150,6 +149,8 @@ public class SettingsDialog extends DialogWrapper {
                 .setEditActionName("Duplicate Profile")
                 .disableUpDownActions()
                 .createPanel();
+        // Keep the native decorator's selection/shortcut handling on the 203 baseline.
+        // AnActionButton is Obsolete in newer SDKs; only the copy icon needs direct access.
         AnActionButton duplicateButton = ToolbarDecorator.findEditButton(listPanel);
         if (duplicateButton != null) {
             duplicateButton.getTemplatePresentation().setIcon(AllIcons.Actions.Copy);
@@ -157,10 +158,10 @@ public class SettingsDialog extends DialogWrapper {
         JPanel left = new JPanel(new BorderLayout());
         left.add(listPanel, BorderLayout.CENTER);
 
-        modelCombo.setEditable(true);
+        modelSelector.setEditable(true);
         fetchModelsButton.setIcon(AllIcons.Actions.Download);
         JPanel modelRow = new JPanel(new BorderLayout(8, 0));
-        modelRow.add(modelCombo, BorderLayout.CENTER);
+        modelRow.add(modelSelector, BorderLayout.CENTER);
         modelRow.add(fetchModelsButton, BorderLayout.EAST);
         fetchModelsButton.addActionListener(ev -> fetchModels());
 
@@ -237,7 +238,7 @@ public class SettingsDialog extends DialogWrapper {
             nameField.setText("");
             baseUrlField.setText("");
             apiKeyField.setText("");
-            modelCombo.setModel(new DefaultComboBoxModel<>());
+            modelSelector.setModels(new ArrayList<>(), "");
             languageCombo.setSelectedIndex(0);
             promptArea.setText("");
         } else {
@@ -246,8 +247,7 @@ public class SettingsDialog extends DialogWrapper {
             nameField.setText(p.name);
             baseUrlField.setText(p.baseUrl);
             apiKeyField.setText(entry.apiKey);
-            modelCombo.setModel(new DefaultComboBoxModel<>(p.models.toArray(new String[0])));
-            modelCombo.setSelectedItem(p.selectedModel);
+            modelSelector.setModels(p.models, p.selectedModel);
             languageCombo.setSelectedIndex(OutputLanguages.indexOf(p.outputLanguage));
             promptArea.setText(p.prompt == null || p.prompt.trim().isEmpty()
                     ? PromptTemplates.getDefaultPrompt() : p.prompt);
@@ -255,7 +255,7 @@ public class SettingsDialog extends DialogWrapper {
         }
         setFormEnabled(hasProfile);
         boolean managedFree = hasProfile && listModel.get(index).profile.isManagedFree();
-        modelCombo.setEditable(hasProfile && !managedFree);
+        modelSelector.setEditable(hasProfile && !managedFree);
         if (managedFree) {
             nameField.setEnabled(false);
             baseUrlField.setEnabled(false);
@@ -275,8 +275,8 @@ public class SettingsDialog extends DialogWrapper {
             entry.apiKey = new String(apiKeyField.getPassword()).trim();
         }
         p.prompt = promptArea.getText();
-        p.models = comboItems();
-        p.selectedModel = currentComboText();
+        p.models = modelSelector.getModels();
+        p.selectedModel = modelSelector.getSelectedModel();
         if (!p.selectedModel.isEmpty() && !p.models.contains(p.selectedModel)) {
             p.models.add(p.selectedModel);
         }
@@ -284,28 +284,11 @@ public class SettingsDialog extends DialogWrapper {
         listModel.set(index, entry);
     }
 
-    private List<String> comboItems() {
-        List<String> items = new ArrayList<>();
-        for (int i = 0; i < modelCombo.getItemCount(); i++) {
-            String item = modelCombo.getItemAt(i);
-            if (item != null && !item.trim().isEmpty() && !items.contains(item.trim())) {
-                items.add(item.trim());
-            }
-        }
-        return items;
-    }
-
-    private String currentComboText() {
-        Object item = modelCombo.isEditable()
-                ? modelCombo.getEditor().getItem() : modelCombo.getSelectedItem();
-        return item == null ? "" : item.toString().trim();
-    }
-
     private void setFormEnabled(boolean enabled) {
         nameField.setEnabled(enabled);
         baseUrlField.setEnabled(enabled);
         apiKeyField.setEnabled(enabled);
-        modelCombo.setEnabled(enabled);
+        modelSelector.setEnabled(enabled);
         languageCombo.setEnabled(enabled);
         fetchModelsButton.setEnabled(enabled);
         testButton.setEnabled(enabled);
@@ -381,24 +364,20 @@ public class SettingsDialog extends DialogWrapper {
         String apiKey = entry.apiKey;
         try {
             AiClient client = AiClients.create(entry.profile);
-            List<String> models = ProgressManager.getInstance().runProcessWithProgressSynchronously(
-                    () -> client.listModels(baseUrl, apiKey,
-                            ProgressManager.getInstance().getProgressIndicator()),
-                    "Fetching Models From Provider", true, project);
-            String current = currentComboText();
-            DefaultComboBoxModel<String> comboModel =
-                    new DefaultComboBoxModel<>(models.toArray(new String[0]));
+            List<String> models = ProgressTasks.modal(project, "Fetching Models From Provider",
+                    indicator -> client.listModels(baseUrl, apiKey, indicator));
+            String current = modelSelector.getSelectedModel();
+            List<String> options = new ArrayList<>(models);
             boolean managedFree = entry.profile.isManagedFree();
-            if (!managedFree && !current.isEmpty() && comboModel.getIndexOf(current) < 0) {
-                comboModel.addElement(current);
+            if (!managedFree && !current.isEmpty() && !options.contains(current)) {
+                options.add(current);
             }
-            modelCombo.setModel(comboModel);
-            if (!current.isEmpty() && comboModel.getIndexOf(current) >= 0) {
-                modelCombo.setSelectedItem(current);
-            } else if (managedFree) {
-                modelCombo.setSelectedItem(null);
+            if (!current.isEmpty() && options.contains(current)) {
+                modelSelector.setModels(options, current);
+            } else if (managedFree || models.isEmpty()) {
+                modelSelector.setModels(options, "");
             } else {
-                modelCombo.setSelectedItem(models.get(0));
+                modelSelector.setModels(options, models.get(0));
             }
             Messages.showInfoMessage(rootPanel,
                     "Fetched " + models.size() + " models", "Fetch Models");
@@ -419,18 +398,18 @@ public class SettingsDialog extends DialogWrapper {
             Messages.showWarningDialog(rootPanel, "Fill in Base URL first", "Test Connection");
             return;
         }
+        ProviderProfile profile = entry.profile.copy();
+        String apiKey = entry.apiKey;
         try {
-            String result = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
-                AiClient client = AiClients.create(entry.profile);
-                if (entry.profile.selectedModel.isEmpty()) {
-                    List<String> models = client.listModels(entry.profile.baseUrl, entry.apiKey,
-                            ProgressManager.getInstance().getProgressIndicator());
+            String result = ProgressTasks.modal(project, "Testing Connection", indicator -> {
+                AiClient client = AiClients.create(profile);
+                if (profile.selectedModel.isEmpty()) {
+                    List<String> models = client.listModels(profile.baseUrl, apiKey, indicator);
                     return "Connection OK. Provider returned " + models.size() + " models.";
                 }
-                String reply = client.ping(entry.profile, entry.apiKey,
-                        ProgressManager.getInstance().getProgressIndicator());
+                String reply = client.ping(profile, apiKey, indicator);
                 return "Connection OK. Model replied: " + reply;
-            }, "Testing Connection", true, project);
+            });
             Messages.showInfoMessage(rootPanel, result, "Test Connection");
         } catch (ProcessCanceledException ignored) {
         } catch (Exception ex) {

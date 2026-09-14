@@ -37,6 +37,8 @@ import java.awt.geom.RoundRectangle2D;
  */
 public class AiCommitSplitButtonAction extends DumbAwareAction implements CustomComponentAction {
 
+    // Keep project visibility checks for the 2020.3 baseline, which has no ActionUpdateThread.
+    // Migrate this update to an explicit thread when raising the minimum supported IDE version.
     @Override
     public void update(@NotNull AnActionEvent e) {
         e.getPresentation().setEnabledAndVisible(e.getProject() != null);

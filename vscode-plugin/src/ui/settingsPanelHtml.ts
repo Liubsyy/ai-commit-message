@@ -66,6 +66,23 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
   button.primary { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
   button.primary:hover { background: var(--vscode-button-hoverBackground); }
   button:disabled { opacity: 0.5; cursor: default; }
+  .model-picker { position: relative; flex: 1; min-width: 0; }
+  #fetchBtn { align-self: flex-start; }
+  .model-input { display: flex; }
+  #modelField { min-width: 0; width: 100%; }
+  #modelOptions {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+    max-height: 240px; overflow-y: auto; padding: 4px;
+    background: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-focusBorder); box-shadow: 0 4px 8px var(--vscode-widget-shadow);
+  }
+  .model-option { display: flex; align-items: center; }
+  .model-option button { border: none; background: transparent; color: inherit; cursor: pointer; padding: 5px 6px; }
+  .model-option button:hover, .model-option button:focus { background: var(--vscode-list-hoverBackground); }
+  .model-option .model-choice { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .model-option .model-delete { flex: none; display: flex; }
+  .model-delete svg { width: 16px; height: 16px; }
+  #modelHint { opacity: 0.8; overflow-wrap: anywhere; }
   .hint { font-size: 0.85em; opacity: 0.65; margin: 2px 0 0; }
   .button-row { margin-top: 8px; display: flex; gap: 8px; }
   .footer {
@@ -96,9 +113,16 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
         <div class="field"><input type="password" id="apiKeyField"></div></div>
       <div class="row"><label for="modelField">Model:</label>
         <div class="field">
-          <input type="text" id="modelField" list="modelOptions">
-          <select id="modelSelect" style="display:none"></select>
-          <datalist id="modelOptions"></datalist>
+          <div class="model-picker" id="modelPicker">
+            <div class="model-input">
+              <input type="text" id="modelField" autocomplete="off" spellcheck="false"
+                     role="combobox" aria-expanded="false" aria-haspopup="dialog"
+                     aria-controls="modelOptions" aria-describedby="modelHint">
+              <button class="action" id="modelToggle" aria-label="Show models" aria-expanded="false" aria-controls="modelOptions">▾</button>
+            </div>
+            <div id="modelOptions" role="dialog" aria-label="Models" hidden></div>
+            <p class="hint" id="modelHint" aria-live="polite"></p>
+          </div>
           <button class="action" id="fetchBtn">Fetch From Provider</button>
         </div></div>
       <div class="row"><label for="languageField">Output language:</label>
@@ -184,39 +208,136 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
     renderList();
   }
 
-  function setModelOptions(models, selected, managedFree) {
-    const datalist = el('modelOptions');
-    const select = el('modelSelect');
+  function loadModelField(selected, managedFree) {
     const input = el('modelField');
-    datalist.textContent = '';
-    select.textContent = '';
-    for (const m of models) {
-      const option = document.createElement('option');
-      option.value = m;
-      option.textContent = m;
-      datalist.appendChild(option.cloneNode(true));
-      select.appendChild(option);
+    input.readOnly = managedFree;
+    input.value = selected || '';
+    input.placeholder = managedFree ? 'Select a model' : 'Type a model ID and press Enter';
+    closeModels();
+    renderModelOptions();
+  }
+
+  function currentModelValue() {
+    const p = entries[currentIndex]?.profile;
+    return el('modelField').value.trim() || p?.selectedModel || '';
+  }
+
+  function closeModels() {
+    el('modelOptions').hidden = true;
+    el('modelField').setAttribute('aria-expanded', 'false');
+    el('modelToggle').setAttribute('aria-expanded', 'false');
+  }
+
+  function renderModelOptions() {
+    const p = entries[currentIndex]?.profile;
+    const options = el('modelOptions');
+    options.textContent = '';
+    el('modelHint').textContent = p
+      ? (p.selectedModel ? 'Current: ' + p.selectedModel + '. ' : 'No model selected. ')
+        + (isManagedFree(p) ? '' : 'Press Enter to add, then type the next ID.') : '';
+    if (!p) { return; }
+    if (!p.models.length) {
+      const empty = document.createElement('p');
+      empty.className = 'hint';
+      empty.textContent = isManagedFree(p) ? 'No models. Click Fetch From Provider.' : 'No models yet. Type an ID and press Enter.';
+      options.appendChild(empty);
     }
-    if (managedFree) {
-      input.style.display = 'none';
-      select.style.display = '';
-      if (models.length === 0) {
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '(no free models; click Fetch From Provider)';
-        select.appendChild(placeholder);
-      }
-      select.value = models.includes(selected) ? selected : '';
-    } else {
-      select.style.display = 'none';
-      input.style.display = '';
-      input.value = selected || '';
+    for (const model of p.models) {
+      const row = document.createElement('div');
+      row.className = 'model-option';
+      const choice = document.createElement('button');
+      choice.className = 'model-choice';
+      choice.textContent = (model === p.selectedModel ? '✓ ' : '') + model;
+      choice.title = model;
+      choice.addEventListener('click', () => {
+        p.selectedModel = model;
+        el('modelField').value = model;
+        closeModels();
+        renderModelOptions();
+        renderList();
+        el('modelField').focus();
+      });
+      const remove = document.createElement('button');
+      remove.className = 'model-delete';
+      remove.title = 'Delete ' + model;
+      remove.setAttribute('aria-label', 'Delete ' + model);
+      remove.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2.5 4.5h11M6 4.5V2.5h4v2M4 4.5l.5 9h7l.5-9M6.5 6.5v5M9.5 6.5v5"/></svg>';
+      remove.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const index = p.models.indexOf(model);
+        const scrollTop = options.scrollTop;
+        p.models = p.models.filter((id) => id !== model);
+        if (p.selectedModel === model) { p.selectedModel = ''; }
+        if (el('modelField').value.trim() === model) { el('modelField').value = ''; }
+        openModels(false);
+        options.scrollTop = scrollTop;
+        renderList();
+        const next = options.querySelectorAll('.model-delete');
+        if (next.length) { next[Math.min(index, next.length - 1)].focus(); }
+        else { closeModels(); el('modelField').focus(); }
+      });
+      row.append(choice, remove);
+      options.appendChild(row);
     }
   }
 
-  function currentModelValue(managedFree) {
-    return (managedFree ? el('modelSelect').value : el('modelField').value).trim();
+  function openModels(focusFirst) {
+    if (currentIndex < 0) { return; }
+    renderModelOptions();
+    el('modelOptions').hidden = false;
+    el('modelField').setAttribute('aria-expanded', 'true');
+    el('modelToggle').setAttribute('aria-expanded', 'true');
+    if (focusFirst) { el('modelOptions').querySelector('button')?.focus(); }
   }
+
+  el('modelField').addEventListener('keydown', (event) => {
+    if (event.isComposing || event.keyCode === 229) { return; }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      openModels(true);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      const p = entries[currentIndex]?.profile;
+      if (!p) { return; }
+      if (isManagedFree(p)) { openModels(true); return; }
+      const model = el('modelField').value.trim();
+      if (!model) { return; }
+      if (!p.models.includes(model)) { p.models.push(model); }
+      p.selectedModel = model;
+      el('modelField').value = '';
+      closeModels();
+      renderModelOptions();
+      renderList();
+    }
+  });
+  el('modelToggle').addEventListener('click', () => {
+    if (el('modelOptions').hidden) { openModels(true); } else { closeModels(); }
+  });
+  el('modelField').addEventListener('click', () => openModels(false));
+  el('modelPicker').addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !el('modelOptions').hidden) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeModels();
+      el('modelField').focus();
+    }
+  });
+  el('modelOptions').addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') { return; }
+    const buttons = [...el('modelOptions').querySelectorAll(
+      event.target.classList.contains('model-delete') ? '.model-delete' : '.model-choice')];
+    const index = buttons.indexOf(event.target);
+    if (index >= 0) {
+      event.preventDefault();
+      buttons[(index + (event.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length].focus();
+    }
+  });
+  el('modelPicker').addEventListener('focusout', (event) => {
+    if (!el('modelPicker').contains(event.relatedTarget)) { closeModels(); }
+  });
+  document.addEventListener('click', (event) => {
+    if (!el('modelPicker').contains(event.target)) { closeModels(); }
+  });
 
   function loadForm(index) {
     const hasProfile = index >= 0 && index < entries.length;
@@ -224,7 +345,7 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
       el('nameField').value = '';
       el('baseUrlField').value = '';
       el('apiKeyField').value = '';
-      setModelOptions([], '', false);
+      loadModelField('', false);
       el('languageField').selectedIndex = 0;
       el('promptField').value = '';
     } else {
@@ -233,13 +354,13 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
       el('nameField').value = p.name;
       el('baseUrlField').value = p.baseUrl;
       el('apiKeyField').value = entry.apiKey;
-      setModelOptions(p.models, p.selectedModel, isManagedFree(p));
+      loadModelField(p.selectedModel, isManagedFree(p));
       el('languageField').value = languageCodes.includes(p.outputLanguage) ? p.outputLanguage : 'auto';
       el('promptField').value = (p.prompt && p.prompt.trim()) ? p.prompt : defaultPrompt;
       el('promptField').scrollTop = 0;
     }
     const managedFree = hasProfile && isManagedFree(entries[index].profile);
-    for (const id of ['nameField', 'baseUrlField', 'apiKeyField', 'modelField', 'modelSelect',
+    for (const id of ['nameField', 'baseUrlField', 'apiKeyField', 'modelField', 'modelToggle',
                       'languageField', 'promptField', 'fetchBtn', 'testBtn', 'restorePromptBtn']) {
       el(id).disabled = !hasProfile;
     }
@@ -261,7 +382,7 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
       entry.apiKey = el('apiKeyField').value.trim();
     }
     p.prompt = el('promptField').value;
-    p.selectedModel = currentModelValue(managedFree);
+    p.selectedModel = currentModelValue();
     if (p.selectedModel && !p.models.includes(p.selectedModel)) {
       p.models.push(p.selectedModel);
     }
@@ -394,7 +515,7 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
       const entry = entries[currentIndex];
       if (!entry) { return; }
       const managedFree = isManagedFree(entry.profile);
-      const current = currentModelValue(managedFree);
+      const current = currentModelValue();
       const models = msg.models.slice();
       // 与 JetBrains 版一致:保留手填模型;托管配置只认网关返回的列表
       if (!managedFree && current && !models.includes(current)) {
@@ -407,10 +528,10 @@ export function renderSettingsHtml(webview: vscode.Webview): string {
       } else if (managedFree) {
         selected = '';
       } else {
-        selected = msg.models[0];
+        selected = msg.models[0] || '';
       }
       entry.profile.selectedModel = selected;
-      setModelOptions(models, selected, managedFree);
+      loadModelField(selected, managedFree);
       setStatus('Fetched ' + msg.models.length + ' models', 'ok');
       renderList();
     } else if (msg.type === 'testConnectionResult') {
