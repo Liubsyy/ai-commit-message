@@ -7,8 +7,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -16,10 +14,10 @@ import com.liubs.aicommit.ai.ManagedFreeClient;
 import com.liubs.aicommit.settings.AiCommitSettings;
 import com.liubs.aicommit.settings.ProviderProfile;
 import com.liubs.aicommit.util.Notifier;
+import com.liubs.aicommit.util.ProgressTasks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -132,26 +130,10 @@ public class ProviderMenuGroup extends ActionGroup implements DumbAware {
             Project project = e == null ? null : e.getProject();
             String baseUrl = profile.baseUrl;
             String id = profile.id;
-            new Task.Backgroundable(project, "Refreshing Free Models", true) {
-                private List<String> models;
-                private IOException refreshError;
-
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                    try {
-                        models = new ManagedFreeClient().listModels(baseUrl, "", indicator);
-                    } catch (IOException ex) {
-                        refreshError = ex;
-                    }
-                }
-
-                @Override
-                public void onSuccess() {
-                    if (models == null) {
-                        if (refreshError != null) {
-                            Notifier.warn(project,
-                                    "Unable to refresh free models: " + refreshError.getMessage());
-                        }
+            ProgressTasks.background(project, "Refreshing Free Models",
+                indicator -> new ManagedFreeClient().listModels(baseUrl, "", indicator),
+                models -> {
+                    if (project != null && project.isDisposed()) {
                         return;
                     }
                     ProviderProfile current = AiCommitSettings.getInstance().findProfile(id);
@@ -160,29 +142,22 @@ public class ProviderMenuGroup extends ActionGroup implements DumbAware {
                     }
                     current.models = new ArrayList<>(models);
                     if (!models.contains(current.selectedModel)) {
-                        current.selectedModel = models.get(0);
+                        current.selectedModel = models.isEmpty() ? "" : models.get(0);
                     }
                     ActivityTracker.getInstance().inc();
-                }
-
-                @Override
-                public void onFinished() {
-                    REFRESH_IN_PROGRESS.set(false);
-                }
-            }.queue();
+                },
+                ex -> Notifier.warn(project, "Unable to refresh free models: " + ex.getMessage()),
+                () -> REFRESH_IN_PROGRESS.set(false));
         }
     }
 
     private static AnAction disabledItem(String text) {
-        return new DumbAwareAction(text) {
-            @Override
-            public void update(@NotNull AnActionEvent e) {
-                e.getPresentation().setEnabled(false);
-            }
-
+        AnAction action = new DumbAwareAction(text) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
             }
         };
+        action.getTemplatePresentation().setEnabled(false);
+        return action;
     }
 }

@@ -1,13 +1,7 @@
 package com.liubs.aicommit.action;
 
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
@@ -24,27 +18,15 @@ import com.liubs.aicommit.settings.ApiKeyStore;
 import com.liubs.aicommit.settings.ProviderProfile;
 import com.liubs.aicommit.settings.ui.SettingsDialog;
 import com.liubs.aicommit.util.Notifier;
+import com.liubs.aicommit.util.ProgressTasks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /** 按钮主体:读取勾选变更 → 生成 diff → 调用 AI → 回填提交信息 */
-public class GenerateCommitMessageAction extends DumbAwareAction {
-
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-        boolean enabled = e.getProject() != null
-                && e.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL) != null;
-        e.getPresentation().setEnabledAndVisible(enabled);
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-        perform(e.getDataContext(), null);
-    }
+public final class GenerateCommitMessageAction {
 
     /** completion 在整个流程结束时(含提前返回与后台任务完成)于 EDT 调用一次 */
     public void perform(@NotNull DataContext dataContext, @Nullable Runnable completion) {
@@ -84,40 +66,33 @@ public class GenerateCommitMessageAction extends DumbAwareAction {
             return;
         }
 
-        ProviderProfile finalProfile = profile;
+        ProviderProfile finalProfile = profile.copy();
         CommitMessageI finalCommitUi = commitUi;
         String apiKey = ApiKeyStore.get(profile.id);
         int charLimit = settings.getState().diffCharLimit;
 
-        new Task.Backgroundable(project, "Generating Commit Message with AI", true) {
-            @Override
-            public void run(@NotNull ProgressIndicator indicator) {
+        ProgressTasks.background(project, "Generating Commit Message with AI",
+            indicator -> {
                 indicator.setIndeterminate(true);
                 indicator.setText("Collecting diff of selected changes…");
                 String diff = ChangesDiffBuilder.buildDiff(project, changes, charLimit);
+                indicator.checkCanceled();
                 indicator.setText("Requesting " + finalProfile.name + " · " + finalProfile.selectedModel + "…");
-                String message;
-                try {
-                    message = AiClients.create(finalProfile)
-                            .generateCommitMessage(finalProfile, apiKey, diff, indicator);
-                } catch (IOException ex) {
-                    Notifier.error(project, "Generation failed: " + ex.getMessage());
+                return AiClients.create(finalProfile)
+                        .generateCommitMessage(finalProfile, apiKey, diff, indicator);
+            },
+            message -> {
+                if (project.isDisposed()) {
                     return;
                 }
                 if (isBlank(message)) {
                     Notifier.warn(project, "The model returned empty content.");
                     return;
                 }
-                String finalMessage = message;
-                ApplicationManager.getApplication().invokeLater(
-                        () -> finalCommitUi.setCommitMessage(finalMessage), ModalityState.any());
-            }
-
-            @Override
-            public void onFinished() {
-                finish(completion);
-            }
-        }.queue();
+                finalCommitUi.setCommitMessage(message);
+            },
+            ex -> Notifier.error(project, "Generation failed: " + ex.getMessage()),
+            () -> finish(completion));
     }
 
     private static void finish(@Nullable Runnable completion) {

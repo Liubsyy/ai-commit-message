@@ -2,7 +2,6 @@ package com.liubs.aicommit.settings.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -28,6 +27,7 @@ import com.liubs.aicommit.settings.AiCommitSettings;
 import com.liubs.aicommit.settings.ApiKeyStore;
 import com.liubs.aicommit.settings.OutputLanguages;
 import com.liubs.aicommit.settings.ProviderProfile;
+import com.liubs.aicommit.util.ProgressTasks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -149,6 +149,8 @@ public class SettingsDialog extends DialogWrapper {
                 .setEditActionName("Duplicate Profile")
                 .disableUpDownActions()
                 .createPanel();
+        // Keep the native decorator's selection/shortcut handling on the 203 baseline.
+        // AnActionButton is Obsolete in newer SDKs; only the copy icon needs direct access.
         AnActionButton duplicateButton = ToolbarDecorator.findEditButton(listPanel);
         if (duplicateButton != null) {
             duplicateButton.getTemplatePresentation().setIcon(AllIcons.Actions.Copy);
@@ -362,10 +364,8 @@ public class SettingsDialog extends DialogWrapper {
         String apiKey = entry.apiKey;
         try {
             AiClient client = AiClients.create(entry.profile);
-            List<String> models = ProgressManager.getInstance().runProcessWithProgressSynchronously(
-                    () -> client.listModels(baseUrl, apiKey,
-                            ProgressManager.getInstance().getProgressIndicator()),
-                    "Fetching Models From Provider", true, project);
+            List<String> models = ProgressTasks.modal(project, "Fetching Models From Provider",
+                    indicator -> client.listModels(baseUrl, apiKey, indicator));
             String current = modelSelector.getSelectedModel();
             List<String> options = new ArrayList<>(models);
             boolean managedFree = entry.profile.isManagedFree();
@@ -398,18 +398,18 @@ public class SettingsDialog extends DialogWrapper {
             Messages.showWarningDialog(rootPanel, "Fill in Base URL first", "Test Connection");
             return;
         }
+        ProviderProfile profile = entry.profile.copy();
+        String apiKey = entry.apiKey;
         try {
-            String result = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
-                AiClient client = AiClients.create(entry.profile);
-                if (entry.profile.selectedModel.isEmpty()) {
-                    List<String> models = client.listModels(entry.profile.baseUrl, entry.apiKey,
-                            ProgressManager.getInstance().getProgressIndicator());
+            String result = ProgressTasks.modal(project, "Testing Connection", indicator -> {
+                AiClient client = AiClients.create(profile);
+                if (profile.selectedModel.isEmpty()) {
+                    List<String> models = client.listModels(profile.baseUrl, apiKey, indicator);
                     return "Connection OK. Provider returned " + models.size() + " models.";
                 }
-                String reply = client.ping(entry.profile, entry.apiKey,
-                        ProgressManager.getInstance().getProgressIndicator());
+                String reply = client.ping(profile, apiKey, indicator);
                 return "Connection OK. Model replied: " + reply;
-            }, "Testing Connection", true, project);
+            });
             Messages.showInfoMessage(rootPanel, result, "Test Connection");
         } catch (ProcessCanceledException ignored) {
         } catch (Exception ex) {
