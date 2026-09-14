@@ -22,7 +22,7 @@ export function resolveChanges(repo: Repository): ResolvedChanges {
   return { staged: false, changes: [...repo.state.workingTreeChanges, ...untracked] };
 }
 
-/** 把变更转成统一 diff 文本,超长按字符预算截断 */
+/** 先列变更文件,再附统一 diff 文本,整体超长按字符预算截断 */
 export async function buildDiff(repo: Repository, resolved: ResolvedChanges,
                                 charLimit: number): Promise<string> {
   let diff: string;
@@ -32,11 +32,10 @@ export async function buildDiff(repo: Repository, resolved: ResolvedChanges,
       diff += await describeUntrackedFiles(repo, resolved.changes, charLimit);
     }
   } catch {
-    diff = describeChanges(repo, resolved.changes);
+    diff = '';
   }
-  if (!diff.trim()) {
-    diff = describeChanges(repo, resolved.changes);
-  }
+  diff = describeChanges(repo, resolved.changes)
+    + (diff.trim() ? '\nDiff:\n' + diff : '\n[Note: full diff unavailable]');
   if (charLimit > 0 && diff.length > charLimit) {
     diff = diff.slice(0, charLimit)
       + '\n\n[Note: diff truncated to the first ' + charLimit + ' characters]';
@@ -84,9 +83,9 @@ async function readTextFile(fsPath: string, budget: number): Promise<string | nu
   }
 }
 
-/** diff 生成失败时的兜底:至少给出文件级变更概览 */
+/** 文件清单放在 diff 之前,优先保留文件级变更概览 */
 function describeChanges(repo: Repository, changes: Change[]): string {
-  let sb = 'Changed files (full diff unavailable):\n';
+  let sb = 'Changed files:\n';
   for (const change of changes) {
     sb += '- ' + statusLabel(change.status) + ' ' + relativePath(repo, change.uri) + '\n';
   }

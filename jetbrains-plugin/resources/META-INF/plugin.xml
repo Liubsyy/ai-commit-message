@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.liubsyy.ai-commit-message</id>
     <name>ai-commit-message</name>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <vendor>liubsyy</vendor>
 
     <description><![CDATA[
@@ -25,6 +25,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <b>1.0.2</b> — List changed files before diff content while preserving the character limit. 优先发送变更文件清单，再发送 diff 内容，保留字符截断机制。
         <b>1.0.1</b> — Update free baseUrl
         <b>1.0.0</b> — Initial release. 首个版本。
     ]]></change-notes>
